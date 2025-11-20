@@ -65,7 +65,7 @@ def getNextTime():
     _tableTimes = getAllTimes()
     _nextTime = 0
     try:
-        for i in range(tableTimes):
+        for i in range(_tableTimes):
             _nextTime = _tableTimes
             if _tableTimes[i-1] < _nextTime < _tableTimes[i+1]:
                 return _nextTime
@@ -96,13 +96,17 @@ async def handle_remind(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for job in current_jobs:
         job.schedule_removal()
 
-    context.job_queue.run_once(
-        send_reminder,
-        when=getTimeToWhen(),
-        chat_id=user_id,
-        name=str(user_id)
-    )
-    await update.message.reply_text("⏰ Напоминание установлено на ", getTimeToWhen())
+    When = getTimeToWhen()
+    if When < 0:
+        await update.message.reply_text("⏰ Напоминаний больше нет")
+    else:
+        context.job_queue.run_once(
+            send_reminder,
+            when=When,
+            chat_id=user_id,
+            name=str(user_id)
+        )
+        await update.message.reply_text("⏰ Напоминание установлено на ", getTimeToWhen())
 # Получить отрывок
 async def send_reminder(context: ContextTypes.DEFAULT_TYPE):
     job = context.job  # Получаем задаение об отправке сообщения
