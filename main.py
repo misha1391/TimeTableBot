@@ -41,19 +41,37 @@ timeTable = load_timeTable()
 
 # Получить настоящее время в секундах
 def getCurrentTime():
-    curTime = datetime.now()
-    hours = curTime.hour * 3600
-    minutes = curTime.minute * 60
-    seconds = curTime.second
-    return hours + minutes + seconds
+    _curTime = datetime.now()
+    _hours = _curTime.hour * 3600
+    _minutes = _curTime.minute * 60
+    _seconds = _curTime.second
+    return _hours + _minutes + _seconds
 
 # Получить день недели
 def getWeekday():
     return datetime.now().weekday()
 
-# Получить время из json файла формата 24:00
+# 24:00 в секунды
+def fromStrToSeconds(_time: str):
+     _timeInInt = [int(i) for i in _time.split(':', _time)]
+     _hoursS = _timeInInt[0] * 3600
+     _minutesS = _timeInInt[1] * 60
+     return _hoursS + _minutesS
+# Получить время из json файла формата 24:00 на сегодня
+def getAllTimes():
+    return timeTable[getWeekday()]
+
 def getNextTime():
-    timeTable[getWeekday()]
+    _tableTimes = getAllTimes()
+    _nextTime = 0
+    try:
+        for i in range(tableTimes):
+            _nextTime = _tableTimes
+            if _tableTimes[i-1] < _nextTime < _tableTimes[i+1]:
+                return _nextTime
+    except:
+        pass
+    return 0
 
 # Получить разницу для when в job-queue
 def getTimeToWhen():
@@ -80,11 +98,11 @@ async def handle_remind(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     context.job_queue.run_once(
         send_reminder,
-        when=5,  # 1 час
+        when=getTimeToWhen(),
         chat_id=user_id,
         name=str(user_id)
     )
-    await update.message.reply_text("⏰ Напоминание установлено на 1 час.")
+    await update.message.reply_text("⏰ Напоминание установлено на ", getTimeToWhen())
 # Получить отрывок
 async def send_reminder(context: ContextTypes.DEFAULT_TYPE):
     job = context.job  # Получаем задаение об отправке сообщения
